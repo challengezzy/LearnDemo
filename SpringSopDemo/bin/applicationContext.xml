@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="bankService" class="com.aptech.aop3.Bank"></bean>
+	
+	<bean id="before" class="com.aptech.aop3.BeforeAdvice"></bean>
+	<bean id="after" class="com.aptech.aop3.AfterAdvice"></bean>
+	<bean id="around" class="com.aptech.aop3.AroundAdvice"></bean>
+	
+	<!-- 通过方法名匹配织入 -->
+	<bean id="namematch" 
+		class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor">
+		<property name="mappedName">
+			<value>getMoney</value>
+		</property>
+		<property name="advice"> <ref bean="before"/></property>
+	</bean>
+	
+	<!-- 正则表达式匹配织入 -->
+	<bean id="regexpMatch" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="patterns">
+			<list>
+				<value>.*set.*</value>
+			</list>
+		</property>
+		<property name="advice"> <ref bean="before"/></property>
+	</bean>
+	
+	<!-- 代理工厂配置 -->
+	<bean id="beforeProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+		<property name="proxyInterfaces">
+			<value>com.aptech.aop3.IBank</value>
+		</property>
+		
+		<!-- 被代理对象 -->
+		<property name="target" ref="bankService" ></property>
+		
+		<property name="interceptorNames">
+			<list>
+				<!-- advice 配置 -->
+				<!-- 
+				<value>before</value> 
+				<value>after</value> 
+				<value>around</value>
+				<value>namematch</value>
+				 -->
+				<value>regexpMatch</value>
+			</list>
+		</property>
+		
+	</bean>
+	
+	<!--  自动代理, 为自动符合条件的目标对象建立代理对象 -->
+	<bean id="autoProxy" class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>*Service</value> <!-- 代理bean名称结尾的Serivce的对象  -->
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>around</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>
